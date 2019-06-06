@@ -1,9 +1,8 @@
 from redis import StrictRedis
 
 
-class AppConfig(object):
+class BaseConfig(object):
     # flask application config
-    DEBUG = True
     SECRET_KEY = "123456"
 
     # SQLAlchemy config
@@ -28,3 +27,20 @@ class AppConfig(object):
     # SET THE MAX LIFE TIME OF SESSION (/s)
     PERMANENT_SESSION_LIFETIME = 60 * 10
 
+
+class AppConfig(BaseConfig):
+
+    DEBUG = True
+
+
+class ProductConfig(BaseConfig):
+
+    pass
+
+
+class TestConfig(BaseConfig):
+
+    DEBUG = True
+
+
+config = {"Deve": AppConfig, "Prod": ProductConfig, "Test": TestConfig}
