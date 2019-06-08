@@ -1,21 +1,15 @@
 # The Main Activation Program
-from flask import session
+from infos import InfosFactory
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-from infos import apply, db, redis_store
+
+
+factory = InfosFactory("Deve")
+apply, db = factory(), factory("db")
 
 migrate = Migrate(apply, db)
 manager = Manager(apply)
 manager.add_command("dbmv", MigrateCommand)
-
-# apply.register_blueprint(blp)
-
-
-@apply.route('/', methods=['GET', 'POST'])
-def index():
-    # set session and saving to redis though flask_session
-    session["key"] = 123
-    return "Hello world"
 
 
 def main():
