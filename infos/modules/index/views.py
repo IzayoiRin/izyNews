@@ -1,8 +1,5 @@
 from flask import session, render_template, current_app, send_file
 from . import indexBlp
-from Activation import factory
-
-redis_db = factory("redis")
 
 
 @indexBlp.route('/', methods=['GET', 'POST'])
@@ -16,5 +13,5 @@ def index():
 @indexBlp.route('/favicon.ico')
 def favicon():
     return current_app.send_static_file("news/favicon.ico")
-    # TODO return send_file("/infos/static/news/favicon.ico")
-    # TODO redirect
+    # return send_file("/infos/static/news/favicon.ico")
+    # redirect

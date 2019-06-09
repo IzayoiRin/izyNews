@@ -8,6 +8,9 @@ from flask_session import Session
 from config import config
 
 
+__all__ = []
+
+
 class InfosFactory(object):
 
     DB = None  # type: SQLAlchemy
@@ -24,7 +27,7 @@ class InfosFactory(object):
             # SET FLASK-SQLALCHEMY
             self.DB = SQLAlchemy(self.apply)
             # SET REDIS
-            self.REDIS = StrictRedis(host=cf.REDIS_HOST, port=cf.REDIS_PORT)
+            self.REDIS = StrictRedis(host=cf.REDIS_HOST, port=cf.REDIS_PORT, decode_responses=cf.REDIS_DECODE)
             # SET CSRF PROTECT
             # response = make_response(body)
             # response.set_cookie("key", "value", max)

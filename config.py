@@ -14,12 +14,13 @@ class BaseConfig(object):
     # Redis config
     REDIS_HOST = "127.0.0.1"
     REDIS_PORT = 6379
+    REDIS_DECODE = True
 
     # SESSION_TYPE [redis, filesystem, sqlalchemy, memcached, mongdb]
     SESSION_TYPE = "redis"
 
     # INIT REDIS OR SET SAVING REDIS OBJECT
-    SESSION_REDIS = StrictRedis(host=REDIS_HOST, port=REDIS_PORT)
+    SESSION_REDIS = StrictRedis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=REDIS_DECODE)
     # DEFAULT PREFIX IS "session:"
     SESSION_PERFIX = "session:"
     # MAKE SESSION SIGNED THEN SAVE TO REDIS

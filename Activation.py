@@ -18,7 +18,8 @@ def main():
     python *.py dbmv migrate -m'//version//'
     python *.py dbmv upgrade[downgrade [version]]
     """
-    # print(apply.url_map)
+
+    print(apply.url_map)
     manager.run()
 
 
