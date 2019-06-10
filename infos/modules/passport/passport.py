@@ -25,23 +25,25 @@ class PassPort(object):
             abort(404)
         # main function: create img code
         _, code, img = cap.captcha.generate_captcha()
+        print(111111111111111111111, code)
         self._redis_operate(name="imgCode:" + self.request, time=ct.IMAGE_CODE_REDIS_EXPIRES, value=code)
         self.response = make_response(img, 200, {"Content-Type": "image/jpg"})
 
     def sms_code(self):
         # resolute request
-        mobile, img, uuid = self.request.get["mobile"], self.request.get["img"], self.request.get["uuid"]
+        mobile, img, uuid = self.request.get("mobile"), self.request.get("img"), self.request.get("uuid")
         # request verification
-        flag = self._request_verify(mobile, img, uuid)
+        flag = self._request_verify(mobile, img, "imgCode:" + uuid)
         if flag:
             self.response = flag
             return
         # main function: set sms code
         sms = "%06d" % randint(0, 999999)
         timeout = ct.SMS_CODE_REDIS_EXPIRES
-        if self.ccp.send_template_sms('18516952650', [sms, timeout], 1) < 0:
-            self.response = jsonify(errno=rc.RET.THIRDERR, errmsg="SMS Sent Fail")
-            return
+        # if self.ccp.send_template_sms('18516952650', [sms, timeout], 1) < 0:
+        #     self.response = jsonify(errno=rc.RET.THIRDERR, errmsg="SMS Sent Fail")
+        #     return
+        print(111111111111111111111, sms)
         self._redis_operate(name="mobile:" + mobile, time=timeout, value=sms)
         self.response = jsonify(errno=rc.RET.OK)
 
@@ -55,13 +57,13 @@ class PassPort(object):
         :return Others: json response [errno, errmsg]
         """
         if not all(args):
-            return jsonify(errno=rc.RET.PARAMERR, errmsg="Lost Params")
+            return jsonify(errno=rc.RET.PARAMERR, errmsg="LOST PARAMS")
         mobile, req_dat, query_key = args
-        if re.match(r"^1[35678]/d{9}$", mobile) is None:
-            return jsonify(errno=rc.RET.USERERR, errmsg="Illegal Phone Number")
+        if re.match(r"^1[35678]\d{9}$", mobile) is None:
+            return jsonify(errno=rc.RET.USERERR, errmsg="ILLEGAL PHONE NUMBER")
         self._redis_operate(query_key)
-        if self.rds_query and self.rds_query.upper() != req_dat.upper():
-            return jsonify(errno=rc.RET.DATAERR, errmsg="Illegal Phone Number")
+        if self.rds_query.upper() != req_dat.upper() if self.rds_query else 1:
+            return jsonify(errno=rc.RET.DATAERR, errmsg="WRONG IMAGE CODE")
 
     def _redis_operate(self, *args, **kwargs):
         if args:
