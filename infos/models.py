@@ -15,6 +15,16 @@ class BaseClass(object):
     is_delete = db.Column(db.BOOLEAN, default=0)
     create_date = db.Column(db.DATE, default=datetime.now)
 
+    @classmethod
+    def packQuery(cls, *criterion):
+        try:
+            res = db.session.query(cls).filter(*criterion).all()
+        except Exception as e:
+            logging.error(e)
+            raise DatabaseError("Bad Database Connection")
+        else:
+            return res
+
 
 class Users(BaseClass, db.Model):
 
@@ -52,6 +62,7 @@ class Users(BaseClass, db.Model):
             db.session.commit()
         except Exception as e:
             logging.error(e)
+            db.session.rollback()
             raise DatabaseError("Commit Failed")
 
     def __repr__(self):

@@ -1,6 +1,6 @@
 import re
 from random import randint
-from flask import make_response, abort, jsonify
+from flask import make_response, abort, jsonify, session
 from Activation import factory
 from infos import constants as ct
 from infos.libs.yuntongxun import sms
@@ -57,7 +57,6 @@ class PassPort(object):
         if flag:
             self.response = flag
             return
-        print(password)
         # main function: add a raw to db.users
         new_user = Users()
         try:
@@ -70,7 +69,19 @@ class PassPort(object):
             logging.error(e)
             self.response = jsonify(errno=rc.RET.UNKOWNERR, errmsg="AN UNKNOWN ERROR")
             return
+        session["uid"] = new_user.id
+        self.response = jsonify(errno=rc.RET.OK)
 
+    def login(self):
+        mobile, password = self.request.get("mobile"), self.request.get("passport")
+        if not(mobile and password):
+            return jsonify(errno=rc.RET.PARAMERR, errmsg="LOST PARAMS")
+        user = Users.packQuery(Users.mobile == mobile)
+        flag = (user[0].id if user[0].verify_pwd(password) else None) if user else None
+        if flag is None:
+            self.response = jsonify(errno=rc.RET.USERERR, errmsg="MOBILE OR PASSWORD WRONG")
+            return
+        session["uid"] = flag
         self.response = jsonify(errno=rc.RET.OK)
 
     def _request_verify(self,*args):

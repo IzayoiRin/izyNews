@@ -34,7 +34,7 @@ class BaseConfig(object):
 class AppConfig(BaseConfig):
 
     DEBUG = True
-    LOG_LEVEL = logging.DEBUG
+    LOG_LEVEL = logging.WARNING
 
 
 class ProductConfig(BaseConfig):
@@ -45,7 +45,7 @@ class ProductConfig(BaseConfig):
 class TestConfig(BaseConfig):
 
     DEBUG = True
-    LOG_LEVEL = logging.DEBUG
+    LOG_LEVEL = logging.INFO
 
 
-config = {"Deve": AppConfig, "Prod": ProductConfig, "Test": TestConfig}
+conf = {"Deve": AppConfig, "Prod": ProductConfig, "Test": TestConfig}

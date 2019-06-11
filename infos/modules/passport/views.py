@@ -33,3 +33,10 @@ def register():
     ps_port.request = request.json
     ps_port.register()
     return ps_port.response
+
+
+@passportBlp.route("/login", methods=("POST",))
+def login():
+    ps_port.request = request.json
+    ps_port.login()
+    return ps_port.response

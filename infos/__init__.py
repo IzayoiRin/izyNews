@@ -5,10 +5,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from redis import StrictRedis
 from flask_session import Session
-from config import config
+from config import conf
 
 
-__all__ = []
+class InitialError(Exception):
+    pass
+
 
 DB = SQLAlchemy()
 
@@ -17,47 +19,59 @@ class InfosFactory(object):
 
     REDIS = None  # type: StrictRedis
     
-    def __init__(self, cf, apply=None):
-        cf = config[cf]
+    def __init__(self, cf_tag, apply=None):
+        cf = conf[cf_tag]
         # SET LOGGING CONFIG
         self._logging(cf)
         # SET FLASK APPLICATION
         if apply is None:
             self.apply = Flask(__name__)
-        if self._app_init(cf):
-            # SET FLASK-SQLALCHEMY
-            DB.init_app(self.apply)
-            # SET REDIS
-            self.REDIS = StrictRedis(host=cf.REDIS_HOST, port=cf.REDIS_PORT, decode_responses=cf.REDIS_DECODE)
-            # SET CSRF PROTECT
-            # response = make_response(body)
-            # response.set_cookie("key", "value", max)
-            CSRFProtect(apply)
-            print("csrf1111111111111111")
-            # SET FLASK-SESSION
-            # flask_session.Session sets the session saving path
-            # flask.session sets real session
-            Session(apply)
-            print("session222222222222222")
-            # BLUEPRINT REGISTER
-            self._load_blps()
-            print("blp3333333333333333333")
+        else:
+            self.apply = apply
+        # LOAD CONFIG
+        self._app_init(cf)
+        # SET FLASK-SQLALCHEMY
+        DB.init_app(self.apply)
+        # SET REDIS
+        self.REDIS = StrictRedis(host=cf.REDIS_HOST, port=cf.REDIS_PORT, decode_responses=cf.REDIS_DECODE)
+        # SET CSRF PROTECT
+        # response = make_response(body)
+        # response.set_cookie("key", "value", max)
+        # CSRFProtect(self.apply)
+        # SET FLASK-SESSION
+        # flask_session.Session sets the session saving path
+        # flask.session sets real session
+        Session(self.apply)
+        # BLUEPRINT REGISTER
+        self._load_blps()
 
     def _logging(self, cf):
-        logging.basicConfig(level=cf.LOG_LEVEL)
+        # SET LOGGER
+        # logger = logging.getLogger()
+        # stream_log_handler = logging.StreamHandler()
+        # SET PRINT LEVEL: higher than cf.LOG_LEVEL
+        # stream_log_handler.setLevel(logging.INFO)
+        # LOGGER LOAD HANDLER
+        # logger.addHandler(stream_log_handler)
+        # SET HANDLER
         file_log_handler = RotatingFileHandler("runLogs/log", maxBytes=1024 * 1024 * 100, backupCount=10)
-        formatter = logging.Formatter("%(levelname)s-%(filename)s:%(lineno)d-%(message)s")
+        # SERT RECORD LEVEL
+        file_log_handler.setLevel(cf.LOG_LEVEL)
+        # SET FORMATTER
+        formatter = logging.Formatter(
+            "%(levelname)s: *%(asctime)s* %(name)s@%(filename)s=%(funcName)s=:%(lineno)d=%(message)s"
+        )
+        # SET RECORD FORMAT
         file_log_handler.setFormatter(formatter)
+        # LOGGER LOAD HANDLER
         logging.getLogger().addHandler(file_log_handler)
 
     def _app_init(self, cf):
         try:
             self.apply.config.from_object(cf)
         except Exception as e:
-            logging.error("Application Initiation Failed")
-            return 
-        else:
-            return 1
+            logging.critical("App Initial: {}".format(e))
+            raise InitialError("Application Initiation Failed")
 
     def _load_blps(self):
         from .modules import BLPS
@@ -68,3 +82,6 @@ class InfosFactory(object):
         assert isinstance(self.REDIS, StrictRedis), "Config Loading Failed"
         dic = {"app": self.apply, "redis": self.REDIS}
         return dic[arg]
+
+
+__all__ = ["InfosFactory", "DB"]

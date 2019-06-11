@@ -5,8 +5,8 @@ from . import indexBlp
 @indexBlp.route('/', methods=['GET', 'POST'])
 def index():
     # set session and saving to redis though flask_session
-    session["asd"] = 123
-    # redis_db.set('asd', 123)
+    uid = session.get("uid", None)
+    print(uid)
     return render_template("news/index.html")
 
 
