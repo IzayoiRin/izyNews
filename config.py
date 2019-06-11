@@ -8,7 +8,7 @@ class BaseConfig(object):
     SECRET_KEY = "123456"
 
     # SQLAlchemy config
-    SQLALCHEMY_DATABASE_URI = "mysql://root:asdlllasd@localhost/news"
+    SQLALCHEMY_DATABASE_URI = "mysql://root:asdlllasd@127.0.0.1:3306/news_db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Redis config
@@ -20,13 +20,13 @@ class BaseConfig(object):
     SESSION_TYPE = "redis"
 
     # INIT REDIS OR SET SAVING REDIS OBJECT
-    SESSION_REDIS = StrictRedis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=REDIS_DECODE)
+    SESSION_REDIS = StrictRedis(host=REDIS_HOST, port=REDIS_PORT)
     # DEFAULT PREFIX IS "session:"
-    SESSION_PERFIX = "session:"
+    SESSION_KEY_PREFIX = "session:"
     # MAKE SESSION SIGNED THEN SAVE TO REDIS
     SESSION_USE_SIGNER = True
     # SET SESSION LIFE TIME
-    SESSION_PERMANENT = False
+    SESSION_PERMANENT = True
     # SET THE MAX LIFE TIME OF SESSION (/s)
     PERMANENT_SESSION_LIFETIME = 60 * 10
 

@@ -26,3 +26,10 @@ def sms_code():
     ps_port.request = request.json
     ps_port.sms_code()
     return ps_port.response
+
+
+@passportBlp.route("/register", methods=("POST",))
+def register():
+    ps_port.request = request.json
+    ps_port.register()
+    return ps_port.response

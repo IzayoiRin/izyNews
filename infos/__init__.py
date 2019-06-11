@@ -10,10 +10,11 @@ from config import config
 
 __all__ = []
 
+DB = SQLAlchemy()
+
 
 class InfosFactory(object):
 
-    DB = None  # type: SQLAlchemy
     REDIS = None  # type: StrictRedis
     
     def __init__(self, cf, apply=None):
@@ -25,19 +26,22 @@ class InfosFactory(object):
             self.apply = Flask(__name__)
         if self._app_init(cf):
             # SET FLASK-SQLALCHEMY
-            self.DB = SQLAlchemy(self.apply)
+            DB.init_app(self.apply)
             # SET REDIS
             self.REDIS = StrictRedis(host=cf.REDIS_HOST, port=cf.REDIS_PORT, decode_responses=cf.REDIS_DECODE)
             # SET CSRF PROTECT
             # response = make_response(body)
             # response.set_cookie("key", "value", max)
             CSRFProtect(apply)
+            print("csrf1111111111111111")
             # SET FLASK-SESSION
             # flask_session.Session sets the session saving path
             # flask.session sets real session
             Session(apply)
+            print("session222222222222222")
             # BLUEPRINT REGISTER
             self._load_blps()
+            print("blp3333333333333333333")
 
     def _logging(self, cf):
         logging.basicConfig(level=cf.LOG_LEVEL)
@@ -61,6 +65,6 @@ class InfosFactory(object):
             self.apply.register_blueprint(blp)
 
     def __call__(self, arg="app"):
-        assert isinstance(self.DB, SQLAlchemy) and isinstance(self.REDIS, StrictRedis), "Config Loading Failed"
-        dic = {"app": self.apply, "db": self.DB, "redis": self.REDIS}
+        assert isinstance(self.REDIS, StrictRedis), "Config Loading Failed"
+        dic = {"app": self.apply, "redis": self.REDIS}
         return dic[arg]

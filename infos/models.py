@@ -1,37 +1,72 @@
-from Activation import db
-import datetime
+import logging
+
+from werkzeug.security import generate_password_hash, check_password_hash
+from infos import DB as db
+from datetime import datetime
 
 
-class Users(db.Model):
+class DatabaseError(Exception):
+    pass
 
-    id =  db.Column(db.Integer, primary_key=True, nullable=False)
+
+class BaseClass(object):
+    """The Basic Class of every Model Class has 3 common columns such as id, is_delete, create_date"""
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
+    is_delete = db.Column(db.BOOLEAN, default=0)
+    create_date = db.Column(db.DATE, default=datetime.now)
+
+
+class Users(BaseClass, db.Model):
+
     nick_name = db.Column(db.String(20), nullable=False)
-    pwd = db.Column(db.String(12), nullable=False)
+    # sha256 encoding password
+    password_hash = db.Column(db.String(128), nullable=False)
     mobile = db.Column(db.String(11), nullable=False)
-    gender = db.Column(db.BOOLEAN, nullable=False, default=1)
-    avatar_url = db.Column(db.String(40))
-    signature = db.Column(db.String(100))
-    create_date = db.Column(db.DATE, default=datetime.datetime.now())
+    gender = db.Column(
+        db.Enum("Female", "Male"),
+        nullable=False, default="Male")
+    avatar_url = db.Column(db.String(255))
+    signature = db.Column(db.String(255))
     last_login = db.Column(db.DATE)
     is_admin = db.Column(db.BOOLEAN, default=0)
-    is_delete = db.Column(db.BOOLEAN, default=0)
+
+    @property
+    def encode_pwd(self):
+        raise DatabaseError("Security Attribution")
+
+    @encode_pwd.setter
+    def encode_pwd(self, pwd):
+        self.password_hash = generate_password_hash(pwd)
+
+    def verify_pwd(self, pwd):
+        return check_password_hash(self.password_hash, pwd)
+
+    def add_raw(self, **kwargs):
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            else:
+                raise DatabaseError("No Such Field")
+        db.session.add(self)
+        try:
+            db.session.commit()
+        except Exception as e:
+            logging.error(e)
+            raise DatabaseError("Commit Failed")
 
     def __repr__(self):
         return "%s(%s, %s)" % (self.__tablename__, self.id, self.nick_name)
 
 
-class News(db.Model):
+class News(BaseClass, db.Model):
 
-    id = db.Column(db.Integer, primary_key=True, nullable=False)
     title = db.Column(db.String(20), nullable=False)
     source = db.Column(db.String(20), nullable=False)
     poster_url = db.Column(db.String(40))
     content = db.Column(db.String(255))
-    create_date = db.Column(db.DATE, default=datetime.datetime.now())
-    digest = db.Column()
+    digest = db.Column(db.String(512), nullable=False)
     hot = db.Column(db.Integer)
-    status = db.Column()
-    is_delete = db.Column(db.BOOLEAN, default=0)
+    status = db.Column(db.Integer, default=0)
     category_id = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, nullable=False)
 
@@ -39,47 +74,38 @@ class News(db.Model):
         return "%s(%s, %s)" % (self.__tablename__, self.id, self.title)
 
 
-class Category(db.Model):
+class Category(BaseClass, db.Model):
 
-    id = db.Column(db.Integer, primary_key=True, nullable=False)
     name = db.Column(db.String(20), nullable=False)
 
     def __repr__(self):
         return "%s(%s, %s)" % (self.__tablename__, self.id, self.name)
 
 
-class Fans(db.Model):
+class Fans(BaseClass, db.Model):
 
-    id = db.Column(db.Integer, primary_key=True, nullable=False)
     star_id = db.Column(db.Integer, nullable=False)
     fan_id = db.Column(db.Integer, nullable=False)
-    is_delete = db.Column(db.BOOLEAN, default=0)
 
     def __repr__(self):
         return "%s(%s, %s)" % (self.__tablename__, self.star_id, self.fan_id)
 
 
-class Collection(db.Model):
+class Collection(BaseClass, db.Model):
 
-    id = db.Column(db.Integer, primary_key=True, nullable=False)
     user_id = db.Column(db.Integer, nullable=False)
     news_id = db.Column(db.Integer, nullable=False)
-    create_date = db.Column(db.DATE, default=datetime.datetime.now())
-    is_delete = db.Column(db.BOOLEAN, default=0)
 
     def __repr__(self):
         return "%s(%s, %s)" % (self.__tablename__, self.user_id, self.news_id)
 
 
-class Comments(db.Model):
+class Comments(BaseClass, db.Model):
 
-    id = db.Column(db.Integer, primary_key=True, nullable=False)
     user_id = db.Column(db.Integer, nullable=False)
     news_id = db.Column(db.Integer, nullable=False)
     content = db.Column(db.String(255))
-    create_date = db.Column(db.DATE, default=datetime.datetime.now())
     likes = db.Column(db.Integer)
-    is_delete = db.Column(db.BOOLEAN, default=0)
     parent_id = db.Column(db.Integer, nullable=False, default=0)
 
     def __repr__(self):
@@ -94,7 +120,3 @@ class Agreements(db.Model):
 
     def __repr__(self):
         return "%s(%s, %s)" % (self.__tablename__, self.user_id, self.comment_id)
-
-
-if __name__ == '__main__':
-    db.create_all()

@@ -1,11 +1,12 @@
-import logging
 import re
 from random import randint
 from flask import make_response, abort, jsonify
-from infos.modules import constants as ct, response_code as rc
 from Activation import factory
-from infos.utils.captcha import captcha as cap
+from infos import constants as ct
 from infos.libs.yuntongxun import sms
+from infos.models import *
+from infos.modules import response_code as rc
+from infos.utils.captcha import captcha as cap
 
 
 class PassPort(object):
@@ -34,6 +35,7 @@ class PassPort(object):
         mobile, img, uuid = self.request.get("mobile"), self.request.get("img"), self.request.get("uuid")
         # request verification
         flag = self._request_verify(mobile, img, "imgCode:" + uuid)
+
         if flag:
             self.response = flag
             return
@@ -45,6 +47,30 @@ class PassPort(object):
         #     return
         print(111111111111111111111, sms)
         self._redis_operate(name="mobile:" + mobile, time=timeout, value=sms)
+        self.response = jsonify(errno=rc.RET.OK)
+
+    def register(self):
+        # resolute request
+        mobile, smscode, password = self.request.get("mobile"),self.request.get("smscode"),self.request.get("password")
+        # request verification
+        flag = self._request_verify(mobile, smscode, "mobile:"+mobile)
+        if flag:
+            self.response = flag
+            return
+        print(password)
+        # main function: add a raw to db.users
+        new_user = Users()
+        try:
+            new_user.encode_pwd = password
+            new_user.add_raw(mobile=mobile, nick_name=mobile, last_login=datetime.now())
+        except DatabaseError as e:
+            self.response = jsonify(errno=rc.RET.DBERR, errmsg=str(e))
+            return
+        except Exception as e:
+            logging.error(e)
+            self.response = jsonify(errno=rc.RET.UNKOWNERR, errmsg="AN UNKNOWN ERROR")
+            return
+
         self.response = jsonify(errno=rc.RET.OK)
 
     def _request_verify(self,*args):
@@ -63,7 +89,14 @@ class PassPort(object):
             return jsonify(errno=rc.RET.USERERR, errmsg="ILLEGAL PHONE NUMBER")
         self._redis_operate(query_key)
         if self.rds_query.upper() != req_dat.upper() if self.rds_query else 1:
-            return jsonify(errno=rc.RET.DATAERR, errmsg="WRONG IMAGE CODE")
+            return jsonify(errno=rc.RET.DATAERR, errmsg="WRONG VERIFY CODE")
+        # mobile's unique verification
+        try:
+            if Users.query.filter_by(mobile=mobile).first():
+                return jsonify(errno=rc.RET.DATAEXIST, errmsg="THE MOBILE HAS BEEN REGISTERED")
+        except Exception as e:
+            logging.error(e)
+            return jsonify(errno=rc.RET.UNKOWNERR, errmsg="AN UNKNOWN ERROR")
 
     def _redis_operate(self, *args, **kwargs):
         if args:
