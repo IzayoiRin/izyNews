@@ -33,3 +33,6 @@ class IndexLogical(object):
             return
         tops = [query.packDict("title", "id") for query in queries]
         self.response = json.dumps(tops)
+
+    def main_scoop(self):
+        pass

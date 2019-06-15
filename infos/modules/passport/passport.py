@@ -73,7 +73,6 @@ class PassPort(object):
         self.response = jsonify(errno=rc.RET.OK)
 
     def login(self):
-        print(self.request)
         mobile, password = self.request.get("mobile"), self.request.get("passport")
         if not(mobile and password):
             return jsonify(errno=rc.RET.PARAMERR, errmsg="LOST PARAMS")

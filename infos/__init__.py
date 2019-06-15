@@ -1,6 +1,6 @@
 import logging
 from logging.handlers import RotatingFileHandler
-from flask import Flask
+from flask import Flask, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from redis import StrictRedis
@@ -27,7 +27,7 @@ class InfosFactory(object):
         if apply is None:
             self.apply = Flask(__name__)
         else:
-            self.apply = apply
+            self.apply = apply  # type: Flask
         # LOAD CONFIG
         self._app_init(cf)
         # SET FLASK-SQLALCHEMY
@@ -38,7 +38,7 @@ class InfosFactory(object):
         # SET CSRF PROTECT
         # response = make_response(body)
         # response.set_cookie("key", "value", max)
-        # CSRFProtect(self.apply)
+        CSRFProtect(self.apply)
         # SET FLASK-SESSION
         # flask_session.Session sets the session saving path
         # flask.session sets real session
