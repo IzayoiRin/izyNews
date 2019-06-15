@@ -84,6 +84,12 @@ class PassPort(object):
         session["uid"] = flag
         self.response = jsonify(errno=rc.RET.OK)
 
+    def logout(self):
+        if self.request.pop("uid", None):
+            self.response = '1'
+            return
+        self.response = '0'
+
     def _request_verify(self,*args):
         """
         Verification params: mobile, req_dat, query_key
@@ -122,6 +128,3 @@ class PassPort(object):
             except Exception as e:
                 logging.error(e)
                 abort(500)
-
-
-ps_port = PassPort()
