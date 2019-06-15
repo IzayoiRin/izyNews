@@ -12,8 +12,10 @@ class DatabaseError(Exception):
 class BaseClass(object):
     """The Basic Class of every Model Class has 3 common columns such as id, is_delete, create_date"""
     id = db.Column(db.Integer, primary_key=True, nullable=False)
-    is_delete = db.Column(db.BOOLEAN, default=0)
+    is_delete = db.Column(db.BOOLEAN, default=False)
     create_date = db.Column(db.DATE, default=datetime.now)
+    # 记录的更新时间
+    update_date = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     @classmethod
     def packQuery(cls, *criterion):
@@ -24,6 +26,15 @@ class BaseClass(object):
             raise DatabaseError("Bad Database Connection")
         else:
             return res
+
+    def packDict(self, *fields):
+        res = dict()
+        for field in fields:
+            val = getattr(self, field, None)
+            if val is None:
+                raise DatabaseError("No Such Field")
+            res[field] = val
+        return res
 
 
 class Users(BaseClass, db.Model):
@@ -71,15 +82,18 @@ class Users(BaseClass, db.Model):
 
 class News(BaseClass, db.Model):
 
-    title = db.Column(db.String(20), nullable=False)
-    source = db.Column(db.String(20), nullable=False)
-    poster_url = db.Column(db.String(40))
-    content = db.Column(db.String(255))
-    digest = db.Column(db.String(512), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    source = db.Column(db.String(63), nullable=False)
+    poster_url = db.Column(db.String(255))
+    content = db.Column(db.Text, nullable=False)
+    digest = db.Column(db.String(511), nullable=False)
     hot = db.Column(db.Integer)
+    # 当前新闻状态 如果为0代表审核通过，1代表审核中，-1代表审核不通过
     status = db.Column(db.Integer, default=0)
     category_id = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer)
+    # 未通过原因，status = -1 的时候使用
+    reason = db.Column(db.String(256))
 
     def __repr__(self):
         return "%s(%s, %s)" % (self.__tablename__, self.id, self.title)

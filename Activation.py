@@ -4,8 +4,7 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
 
-factory = InfosFactory("Deve")
-apply= factory()
+apply = InfosFactory("Deve")()
 
 migrate = Migrate(apply, db)
 manager = Manager(apply)

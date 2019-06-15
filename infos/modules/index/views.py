@@ -1,6 +1,7 @@
-from flask import session, render_template, current_app, send_file
+from flask import session, render_template, current_app, send_file, request
+
 from . import indexBlp
-from .index import indexlog
+from .index import IndexLogical
 
 
 @indexBlp.route('/', methods=['GET', 'POST'])
@@ -18,6 +19,16 @@ def favicon():
 
 @indexBlp.route('/login_state', methods=("GET",))
 def login_state():
+    indexlog = IndexLogical()
     indexlog.requset = session.get("uid", None)
     indexlog.login_state()
     return indexlog.response
+
+
+@indexBlp.route("/hot_rank", methods=("GET",))
+def hot_rank():
+    indexlog = IndexLogical()
+    indexlog.requset = None
+    indexlog.hot_rank()
+    return indexlog.response
+

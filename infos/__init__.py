@@ -13,13 +13,13 @@ class InitialError(Exception):
 
 
 DB = SQLAlchemy()
+REDIS = None  # type: StrictRedis
 
 
 class InfosFactory(object):
 
-    REDIS = None  # type: StrictRedis
-    
     def __init__(self, cf_tag, apply=None):
+
         cf = conf[cf_tag]
         # SET LOGGING CONFIG
         self._logging(cf)
@@ -33,7 +33,8 @@ class InfosFactory(object):
         # SET FLASK-SQLALCHEMY
         DB.init_app(self.apply)
         # SET REDIS
-        self.REDIS = StrictRedis(host=cf.REDIS_HOST, port=cf.REDIS_PORT, decode_responses=cf.REDIS_DECODE)
+        global REDIS
+        REDIS = StrictRedis(host=cf.REDIS_HOST, port=cf.REDIS_PORT, decode_responses=cf.REDIS_DECODE)
         # SET CSRF PROTECT
         # response = make_response(body)
         # response.set_cookie("key", "value", max)
@@ -78,10 +79,6 @@ class InfosFactory(object):
         for blp in BLPS:
             self.apply.register_blueprint(blp)
 
-    def __call__(self, arg="app"):
-        assert isinstance(self.REDIS, StrictRedis), "Config Loading Failed"
-        dic = {"app": self.apply, "redis": self.REDIS}
-        return dic[arg]
-
-
-__all__ = ["InfosFactory", "DB"]
+    def __call__(self):
+        assert isinstance(REDIS, StrictRedis), "Config Loading Failed"
+        return self.apply

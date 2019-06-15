@@ -1,7 +1,7 @@
 import re
 from random import randint
 from flask import make_response, abort, jsonify, session
-from Activation import factory
+from infos import REDIS
 from infos import constants as ct
 from infos.libs.yuntongxun import sms
 from infos.models import *
@@ -12,7 +12,7 @@ from infos.utils.captcha import captcha as cap
 class PassPort(object):
 
     ccp = sms.CCP()
-    redis_db = factory("redis")
+    redis_db = REDIS
 
     def __init__(self):
         self.request = None
@@ -73,6 +73,7 @@ class PassPort(object):
         self.response = jsonify(errno=rc.RET.OK)
 
     def login(self):
+        print(self.request)
         mobile, password = self.request.get("mobile"), self.request.get("passport")
         if not(mobile and password):
             return jsonify(errno=rc.RET.PARAMERR, errmsg="LOST PARAMS")

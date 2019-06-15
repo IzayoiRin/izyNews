@@ -1,7 +1,9 @@
-from flask import json
+import logging
 
-from infos.models import Users
+from flask import json
+from infos.models import Users, News
 from infos.modules import response_code as rc
+from infos import constants as ct
 
 
 class IndexLogical(object):
@@ -21,5 +23,13 @@ class IndexLogical(object):
             return
         self.response = json.jsonify(errno=rc.RET.USERERR, errmsg="Error User")
 
-
-indexlog = IndexLogical()
+    def hot_rank(self, *criterion):
+        filters = [News.is_delete == 0] + list(criterion)
+        try:
+            queries = News.query.filter(*filters).order_by(News.hot.desc()).limit(ct.CLICK_RANK_MAX_NEWS).all()
+        except Exception as e:
+            logging.error(e)
+            self.response = json.jsonify(errno=rc.RET.DBERR, errmsg="Query failed")
+            return
+        tops = [query.packDict("title", "id") for query in queries]
+        self.response = json.dumps(tops)
