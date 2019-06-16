@@ -1,5 +1,4 @@
 import logging
-
 from werkzeug.security import generate_password_hash, check_password_hash
 from infos import DB as db
 from datetime import datetime
@@ -13,7 +12,7 @@ class BaseClass(object):
     """The Basic Class of every Model Class has 3 common columns such as id, is_delete, create_date"""
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     is_delete = db.Column(db.BOOLEAN, default=False)
-    create_date = db.Column(db.DATE, default=datetime.now)
+    create_date = db.Column(db.DateTime, default=datetime.now)
     # 记录的更新时间
     update_date = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
@@ -33,6 +32,8 @@ class BaseClass(object):
             val = getattr(self, field, None)
             if val is None:
                 raise DatabaseError("No Such Field")
+            if isinstance(val, datetime):
+                val = val.strftime("%Y-%m-%d %H:%M:%S")
             res[field] = val
         return res
 
@@ -103,7 +104,7 @@ class News(BaseClass, db.Model):
             return self.join_users()\
                 .filter(*filters)\
                 .filter_by(id=self.id)\
-                .all()
+                .first()
         except Exception as e:
             logging.error(e)
             raise DatabaseError("Bad Database Connection")

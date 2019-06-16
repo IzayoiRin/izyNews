@@ -13,6 +13,7 @@ class Paginate(object):
 
     def alchemyQuery_init(self, alchemy_query_sql):
         self.query_sql = alchemy_query_sql
+        return self
 
     def query(self, page=1):
         if self.query_sql is None:
