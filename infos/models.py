@@ -98,6 +98,27 @@ class News(BaseClass, db.Model):
     def __repr__(self):
         return "%s(%s, %s)" % (self.__tablename__, self.id, self.title)
 
+    def user(self, *filters):
+        try:
+            return self.join_users()\
+                .filter(*filters)\
+                .filter_by(id=self.id)\
+                .all()
+        except Exception as e:
+            logging.error(e)
+            raise DatabaseError("Bad Database Connection")
+
+    @classmethod
+    def join_users(cls, *filters):
+        try:
+            return db.session.query(Users, cls)\
+                .select_from(cls)\
+                .join(Users, Users.id == cls.user_id)\
+                .filter(*filters)
+        except Exception as e:
+            logging.error(e)
+            raise DatabaseError("Bad Database Connection")
+
 
 class Category(BaseClass, db.Model):
 

@@ -6,8 +6,9 @@ from .index import IndexLogical
 
 @indexBlp.route('/', methods=['GET', 'POST'])
 def index():
-    # set session and saving to redis though flask_session
-    return render_template("news/index.html")
+    indexlog = IndexLogical()
+    context = indexlog.main_scoop()
+    return render_template("news/index.html", data=context)
 
 
 @indexBlp.route('/favicon.ico')
