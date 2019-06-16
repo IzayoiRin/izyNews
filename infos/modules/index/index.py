@@ -4,13 +4,10 @@ from flask import json, abort
 from infos.models import Users, News, Category
 from infos.modules import response_code as rc
 from infos import constants as ct
-from infos.utils.common import Paginate
+from infos.utils.common import Paginate, BaseModules
 
 
-class IndexLogical(object):
-    def __init__(self):
-        self.request = None
-        self.response = None
+class IndexLogical(BaseModules):
 
     def login_state(self):
         uid = self.request
@@ -20,7 +17,7 @@ class IndexLogical(object):
         select_user = user[0] if user else None
         if select_user:
             self.response = json.jsonify(errno=rc.RET.OK, name=select_user.nick_name, url=select_user.avatar_url)
-            return
+            return select_user.id
         self.response = json.jsonify(errno=rc.RET.USERERR, errmsg="Error User")
 
     def hot_rank(self, *criterion):

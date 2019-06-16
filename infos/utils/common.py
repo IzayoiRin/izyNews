@@ -1,6 +1,16 @@
 import logging
+
+from flask import session, g
+
 from infos import constants as ct
 from infos.models import DatabaseError
+
+
+class BaseModules(object):
+
+    def __init__(self):
+        self.request = None
+        self.response = None
 
 
 class Paginate(object):
@@ -42,3 +52,13 @@ class Paginate(object):
         if self.query_set is None:
             return
         return self.query_set.pages
+
+
+def is_login(func):
+    def wrapper(*args, **kwargs):
+        from infos.modules.index.index import IndexLogical
+        idxlog = IndexLogical()
+        idxlog.request = session.get("uid", None)
+        g.uid = idxlog.login_state()
+        return func(*args, **kwargs)
+    return wrapper

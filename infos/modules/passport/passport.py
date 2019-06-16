@@ -7,17 +7,17 @@ from infos.libs.yuntongxun import sms
 from infos.models import *
 from infos.modules import response_code as rc
 from infos.utils.captcha import captcha as cap
+from infos.utils.common import BaseModules
 
 
-class PassPort(object):
+class PassPort(BaseModules):
 
     ccp = sms.CCP()
     redis_db = REDIS
 
     def __init__(self):
-        self.request = None
+        super().__init__()
         self.rds_query = None  # type: str
-        self.response = None
 
     def img_code(self):
         # resolute request
